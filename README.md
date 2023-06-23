@@ -1,1 +1,5 @@
 # Project_Ozone
+
+This project was completed as part of the DS 740 Data Mining course for the Master's Data Science program at the University of Wisconsin - Superior. The purpose of this project was to utilize data mining and machine learning techniques (Multiple Linear Regression and Random Forests, in this case) to create a model that could accurately predict concentrations of atmospheric ozone. In addition to this task, we were to utilize the model to determine the most important factors in predicting atmospheric ozone. Multiple Linear Regression and Random Forest models were assessed via 10-fold cross-validation to determine which type of model more precisely predicted ozone concentration. An executive summary was created summarizing the project and its findings.
+
+Midterm Project.Rmd contains the R code utilized in order to create and assess machine learning algorithms in the prediction of ozone concentration, Ozone_LA.csv is the dataset utilized for analysis, and Midterm Executive Summary.docx contains the executive summary of the project.
