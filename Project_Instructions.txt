@@ -1,0 +1,72 @@
+Purpose
+The midterm project will give you experience with the following skills:  
+
+Using caret to fit machine learning models and select an optimal model.
+
+Using double cross-validation to assess the predictive ability of your modeling process.
+Interpreting and communicating your results for a general audience, including appropriate graphs.  
+
+The midterm project will help you practice and receive feedback as preparation for the final project. 
+
+
+Task
+The midterm project involves four major phases: data preparation, fitting the models, interpreting the best model, and communicating the analysis and results. These phases can be broken down into the smaller steps listed below. We recommend reading through all the steps to understand “the big picture” before you begin working. 
+
+Data preparation
+
+Choose 1 of the data sets listed in Data Set Descriptions Download Data Set Descriptionsto analyze. Although many of the methods we’ve covered in this class would be appropriate for these data sets, we have selected two appropriate methods for each data set. These are the methods you will compare. (This helps keep things simple for the midterm project, because you don’t need to spend time strategizing about which methods are likely to give the best results for a given data set.)
+
+Think about who your target audience is. Why would someone be interested in predicting the response variable?
+
+Read the data into R and do an exploratory data analysis and data cleaning. Things to consider:
+
+If there is missing data, how will you deal with it?
+
+Will you modify any of the predictors (such as log-transforming a quantitative variable or combining some categories of a categorical variable)?
+
+What range of values might be a good choice for any tuning parameters of your machine learning methods? 
+
+Fitting the models
+
+Use caret to conduct a single layer of 10-fold cross validation on both of the modeling types indicated for the data set you chose. Tune at least one parameter for at least one of the modeling types. (Tuning multiple parameters may help improve your model’s performance.)
+
+Write a for loop to conduct an outer layer of 5-fold cross-validation, containing both of the modeling types. Modify your code from the single layer of CV to use traindata.out rather than the full data set. Assess the performance of your model selection process.
+
+Based on your results from steps 4 and/or 5, select one “best” model (including its tuning parameter values). Fit the model on the entire data set. (One way to do this is to extract the $finalModel component of the caret object from step 4, when used to perform a single layer of CV on the entire data set.)  This is the final model you will be interpreting in steps 7-8.
+
+Interpreting the best model
+
+Identify which 2 predictors are the most important in the model. Describe their relationship with the response.  (For example, are the predictors positively associated with the response? Negatively associated? Or something else?) Choose at least one of the following questions to answer:
+
+Does this (the most important predictors and their relationship with the response) make sense, based on your prior knowledge about this subject, or does it surprise you? Explain.
+
+Find a published news article or academic paper analyzing a response variable related to the one you analyzed. Does it agree with your analysis about the direction of the relationship between the predictors and the response? If not, what are some differences between your analysis and the article that could explain the difference in results?  (For example, a different population being studied, or an additional covariate.) Why might these change the results?
+
+For example: “One possible explanation is that Smith et al.’s study focused on low-income patients in rural areas, for whom it was very difficult to visit the doctor. For these patients, one additional visit to the doctor represents a large percentage increase in medical supervision, resulting in a health improvement. In contrast, my data set includes patients who visited the doctor up to 20 times per year. Such large numbers of visits indicate health problems requiring close supervision. This resulted in a negative association between number of visits and overall health."
+
+What, if anything, can your target audience do to improve the response variable?  Is it plausible that the relationship between the predictors and the response is causal?  (There might be an action step for your target audience even if the relationship is not causal.  For example, even if buying shoes doesn’t cause an increased probability of buying socks (but they’re both associated with income and a general need for footwear), a company might still want to target sock ads to customers who have purchased shoes.)  If your two most important predictors are not actionable, choose another predictor that is actionable.  Describe its relationship with the response, and explain what your target audience could do about it.
+
+Consider the accuracy/MSE of your model selection process (from step 5).  In your opinion, is your best model sufficiently accurate to be used for new predictions of individual data points?  (If you are doing a regression problem, it may be helpful to compute the MAE.)  If not, what specific thing(s) would you try in the future to improve your model?  (A different machine learning technique?  A different set of tuning parameters?  Additional predictor variables--if so, which variables would you want to gather data on?)  It’s fine to suggest gathering more data from a specific subpopulation (for example, “My model does poorly at classifying tennis players, so I would want to collect data from more tennis players.”), but simply suggesting “more data” without specifics is not a useful recommendation. 
+
+Communicating the analysis and results
+
+Use R to create clear, readable graphs that communicate either or both of the following:
+
+The relative performance of different models/combinations of tuning parameters
+
+The relationship between the response (or predicted response) and one or more of the predictors you examined in step 7 
+
+Optionally, you may also use R to create clear, readable graphs that communicate either or both of the following:
+
+Why you chose the data cleaning that you did
+
+Which predictors are most important in the best model 
+
+You are encouraged to experiment with different ways of graphing your data.  However, to demonstrate your critical thinking and good judgement, select the most useful 1-5 graphs to include in your executive summary.
+
+Optionally, you may include 0-2 tables that demonstrate useful information about your data and/or models.  For purposes of this project, tables are not a substitute for graphs.
+
+Your report should not include raw R output (for example, from summary( )).  We do not recommend including a table that is just a list of variables.  If you include a table of variables, the table should also include additional information to add value (such as a summary of how each variable was cleaned).
+
+Prepare an executive summary of 500-1200 words summarizing your analysis and interpretation. 
+

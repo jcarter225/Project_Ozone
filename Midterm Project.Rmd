@@ -1,0 +1,338 @@
+---
+title: "Midterm Project"
+author: "Justin Carter"
+date: "3/24/2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Exploration and Tansformation
+```{r include=FALSE}
+# read in data
+library(tidyverse)
+ozone <- read_csv("Ozone_LA.csv")
+
+#response variable is hour_average_max
+
+
+#check for missing values:
+
+cbind(lapply(lapply(ozone, is.na),
+             sum))
+
+# hour_average_max,
+# pressure_500_height,
+# humidity, 
+# temp_Sandburg, 
+# temp_El_Monte, 
+# inversion_base_height,
+# presure_gradient_Daggett, 
+# invrsion_base_temp
+# 
+# all have missing values
+
+
+#impute missing values with the median of each column in order to preserve most of the data:
+
+ozone$hour_average_max[is.na(ozone$hour_average_max)] <- median(ozone$hour_average_max, na.rm=TRUE)
+
+ozone$pressure_500_height[is.na(ozone$pressure_500_height)] <- median(ozone$pressure_500_height, na.rm=TRUE)
+
+ozone$humidity[is.na(ozone$humidity)] <- median(ozone$humidity, na.rm=TRUE)
+
+ozone$temp_Sandburg[is.na(ozone$temp_Sandburg)] <- median(ozone$temp_Sandburg, na.rm=TRUE)
+
+ozone$temp_El_Monte[is.na(ozone$temp_El_Monte)] <- median(ozone$temp_El_Monte, na.rm=TRUE)
+
+ozone$inversion_base_height[is.na(ozone$inversion_base_height)] <- median(ozone$inversion_base_height, na.rm=TRUE)
+
+ozone$pressure_gradient_Daggett[is.na(ozone$pressure_gradient_Daggett)] <- median(ozone$pressure_gradient_Daggett, na.rm=TRUE)
+
+ozone$inversion_base_temp[is.na(ozone$inversion_base_temp)] <- median(ozone$inversion_base_temp, na.rm=TRUE)
+```
+
+
+```{r include=FALSE}
+#make df of only numerical variables:
+
+corr_df <- ozone %>%
+  dplyr::select(-day_of_week)
+
+cor(corr_df)
+
+#get rid of: pressure_500_height, inversion_base_temp, 
+
+
+#corrs with hour_average max:
+
+#Temp_sandburg: 0.759
+#temp_El_Monte: 0.57
+#inversion_base_temp: 0.71
+#inversion_base_height: 0.566
+
+corr_df <- corr_df %>%
+  dplyr::select(-c(pressure_500_height, inversion_base_temp))
+
+```
+
+
+```{r echo=FALSE}
+
+# hist(ozone$month)
+# hist(ozone$day_of_month)
+# hist(ozone$hour_average_max)
+# hist(ozone$wind_speed)
+# hist(ozone$humidity)
+# hist(ozone$temp_Sandburg)
+# hist(ozone$temp_El_Monte)
+# hist(ozone$pressure_gradient_Daggett)
+# hist(ozone$visibility)
+# hist(ozone$inversion_base_height)
+
+#possibly transform:
+#month
+#day_of_month
+#hour_average_max
+#humidity; not that bad
+#visibility
+
+
+#exclude month and day_of_month from analysis due to low correlatinos with hour_average_max, as well as highly non-normal distributions.
+
+#exclude day_of_week from dataset due to low correlation with hour_average_max from a prior analysis
+
+before <-ggplot(ozone, aes(x=hour_average_max)) + 
+  geom_histogram(color="black", fill="red") +
+  labs(title = "Distribution of Ozone Concentration Values", x="Ozone Concetration (ppm)")
+
+before
+
+```
+```{r}
+after <-ggplot(ozone, aes(x=log(hour_average_max))) + 
+  geom_histogram(color="black", fill="blue") +
+  labs(title = "Distribution of Logarithmic Ozone Values", x="Ozone Concetration (log scale)")
+
+after
+
+# #hist(ozone$hour_average_max, col="red",
+#      main="Distribution of Ozone Concentration Values", xlab="Ozone Concentration (ppm)")
+# 
+# 
+# hist(log(ozone$hour_average_max), col="blue", main="Distribution of Logarithmic Ozone Values", xlab="Ozone Concentration (log)")
+
+ #use log of hour_average_max
+#hist(log(ozone$humidity))
+#hist(ozone$humidity) #leave as-is, due to tranformations making distribution less approximately normal
+
+#hist(sqrt(ozone$visibility)) #use square root of visibility
+#hist(ozone$visibility)
+
+
+#Make changes to the data frame reflecting the above findings:
+
+ozone <- ozone %>%
+  dplyr::select(-c(pressure_500_height, inversion_base_temp)) %>%
+  mutate(log_hour_average_max = log(hour_average_max),
+         sqrt_visibility = sqrt(visibility))
+
+ozone <- ozone %>%
+  dplyr::select(-c(hour_average_max, visibility, month, day_of_month, day_of_week))
+
+```
+
+# 10 Fold Cross-Validation
+```{r include=FALSE}
+#10 Fold Cross-Validation
+library(randomForest)
+library(caret)
+
+#fit linear model and random forest on all data in data set
+
+linear_model <- (log_hour_average_max~.)
+
+allLinModels = list(linear_model)
+all_mtry = (2:7)
+
+
+
+
+data_used=ozone
+
+# set up training method
+set.seed(1)
+training = trainControl(method = "cv", number = 10) #10 is number of folds; "cv" specifies cross-validation
+
+# cross-validation of linear model 1
+fit_caret_lm1 = train(log_hour_average_max ~., data = data_used,method = "lm",
+trControl = training)
+
+#RMSE:
+#fit_caret_lm1
+
+#use randomForests and include all predictors:
+
+set.seed(1)
+
+#cross validation of random forest models
+ozone_rf_caret = train(log_hour_average_max ~ ., data = data_used, method = "rf",
+tuneGrid = expand.grid(mtry = all_mtry),
+             trControl = training)
+
+ozone_rf_caret
+
+#mtry = 3 is optimal for this random forest
+
+ozone_rf_caret$results$RMSE
+min(ozone_rf_caret$results$RMSE)
+ozone_rf_caret$bestTune #confirms 3 best tuning parameter
+
+
+```
+
+# "Double" Cross-Validation
+```{r include=FALSE}
+#Double Cross-Validation
+
+
+##### model assessment OUTER shell #####
+# produce loops for 10-fold cross-validation for model ASSESSMENT
+n=dim(ozone)[1]
+nfolds = 5
+groups = rep(1:nfolds,length=n)  #produces list of group labels
+set.seed(1)
+cvgroups = sample(groups,n)  #orders randomly
+
+# set up storage for predicted values from the double-cross-validation
+allpredictedCV = rep(NA,n)
+# set up storage to see what models are "best" on the inner loops
+allbestTypes = rep(NA,nfolds)
+allbestPars = vector("list",nfolds)
+
+# loop through outer splits
+for (j in 1:nfolds)  {  #be careful not to re-use loop indices
+  
+  groupj = (cvgroups == j)
+  traindata = ozone[!groupj,]
+  trainx = model.matrix(log_hour_average_max ~ ., data = traindata)[,-1]
+  trainy = traindata$log_hour_average_max
+  validdata = ozone[groupj,]
+  validx = model.matrix(log_hour_average_max ~ ., data = validdata)[,-1]
+  validy = validdata$log_hour_average_max
+  
+   #specify data to be used  VERY IMPORTANT STEP!!!!!!!
+  dataused=traindata
+  
+  ###  entire model-fitting process ###
+  ###  on traindata only!!! ###
+  ###	 :	:	:	:	:	:	:   ###
+  # set up training method
+  set.seed(1)
+  training = trainControl(method = "cv", number = 10)
+
+# cross-validation of linear model 1
+fit_caret_lm1 = train(log_hour_average_max ~., data = data_used,method = "lm",
+trControl = training)
+
+#RMSE:
+#fit_caret_lm1
+
+#use randomForests and include all predictors:
+
+set.seed(1)
+
+ozone_rf_caret = train(log_hour_average_max ~ ., data = data_used, method = "rf",
+tuneGrid = expand.grid(mtry = all_mtry),
+             trControl = training)
+
+
+
+  ############# identify selected model to fit to full data #############
+  # all best models
+  all_best_Types = c("Linear","Random_Forest")
+
+  all_best_Pars = list(7,ozone_rf_caret$finalModel$mtry) 
+  
+  all_best_Models = list(fit_caret_lm1$finalModel,
+      ozone_rf_caret$finalModel) 
+  
+  all_best_RMSE = c(fit_caret_lm1$results$RMSE,
+                    min(ozone_rf_caret$results$RMSE)) #if not good, change back to min(ozone_rf_caret$RMSE)
+  
+   one_best_Type = all_best_Types[which.min(all_best_RMSE)]
+  one_best_Pars = all_best_Pars[which.min(all_best_RMSE)]
+  one_best_Model = all_best_Models[[which.min(all_best_RMSE)]]
+
+  
+ ###  :	:	:	:	:	:	:   ###
+  ###  resulting in     ###
+  ###  one_best_Type and one_best_Pars and one_best_Model and one_best_Order  ###
+
+
+  allbestTypes[j] = one_best_Type
+  allbestPars[[j]] = one_best_Pars
+  
+  if (one_best_Type == "Linear") {  # then best is one of linear models
+    allpredictedCV[groupj] = predict(one_best_Model,validdata)
+  } else if (one_best_Type == "Random_Forest") {  # then best is one of Random Forest models
+    rf_mtry = one_best_Pars[[1]] #value of mtry
+    allpredictedCV[groupj]  = predict(ozone_rf_caret,validdata)#,mtry=rf_mtry) #last part may be incorrect
+    
+  }
+}
+
+allbestTypes #store the best model types from each fold
+allbestPars
+
+
+```
+
+# Modeleling Process Assessment
+```{r include=FALSE}
+#Modeling Process Assessment:
+
+y = ozone$log_hour_average_max
+RMSE = sqrt(mean((allpredictedCV-y)^2)); RMSE 
+R2 = 1-sum((allpredictedCV-y)^2)/sum((y-mean(y))^2); R2
+```
+
+# Determining Importance of Predictors
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Determine Overall Importance and Partial Dependence
+
+library(ggformula)
+#use 4 as optimal mtry value, as was provided by model selection section
+best_ozone_model_rf = randomForest(log_hour_average_max ~ ., data = ozone,
+                         mtry = 3, importance = TRUE) 
+
+
+
+#Variable Importance Charts:
+# importance_plot <- varImpPlot(ozone_rf_caret$finalModel) %>%
+#   gf_labs(title = "Variable Importance Predicting Ozone Concentration")
+# importance_plot
+
+
+
+#partial variable importance plot (importance of each variable when other variables remain constant):
+
+source("gf_partialPlot.R")
+gf_partialPlot(ozone_rf_caret, ozone, x.var = "temp_Sandburg") %>%
+  gf_labs(
+          title = "Partial Dependence on the Temperature in Sandburg", x="Test Values", y="Predicted Average")
+
+source("gf_partialPlot.R")
+gf_partialPlot(ozone_rf_caret, ozone, x.var = "inversion_base_height") %>%
+  gf_labs(
+          title = "Partial Dependence on Inversion Base Height", x="Test Values", y="Predicted Average" ) 
+
+
+
+```
+
+
